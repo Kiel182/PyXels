@@ -27,6 +27,10 @@ class Matrix:
         for x in range(0, self.width):
             for y in range(0, self.height):
                 for z in range(0, self.depth):
-                    # if z == 1:
-                    #     self.blocks[x, y, z].isActive = True
                     self.blocks[x, y, z].paint()
+
+    def showGrid(self, show):
+        for x in range(0, self.width):
+            for y in range(0, self.height):
+                for z in range(0, self.depth):
+                    self.blocks[x, y, z].show_grid = show

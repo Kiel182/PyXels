@@ -2,9 +2,10 @@ import sys
 import math
 
 from PyQt5.QtCore import pyqtSignal, QPoint, QSize, Qt, pyqtSlot
+from PyQt5.Qt import QVector3D, QVector4D
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QVBoxLayout, QOpenGLWidget, QSlider,
-                             QWidget, QSizePolicy, QSpinBox, QTableWidget)
+                             QWidget, QSizePolicy, QSpinBox, QTableWidget, QCheckBox)
 
 import OpenGL.GL as gl
 import OpenGL.GLU as glu
@@ -26,6 +27,11 @@ class Window(QWidget):
         self.blocksX = QTableWidget()
         self.blocksY = QTableWidget()
         self.blocksZ = QTableWidget()
+        self.showGrid = QCheckBox()
+
+        self.showGrid.setChecked(True)
+        self.showGrid.setText("Show grid")
+        self.showGrid.clicked.connect(self.updateGrid)
 
         self.spinHeight.setPrefix("Height : ")
         self.spinWidth.setPrefix("Width : ")
@@ -67,9 +73,14 @@ class Window(QWidget):
         self.spinWidth.valueChanged.connect(self.updateMatrix)
         self.spinDepth.valueChanged.connect(self.updateMatrix)
 
+        self.blocksX.cellClicked.connect(self.updateBlocks)
+        self.blocksY.cellClicked.connect(self.updateBlocks)
+        self.blocksZ.cellClicked.connect(self.updateBlocks)
+
         mainLayout = QHBoxLayout()
         mainLayout.addWidget(self.glWidget)
         subLayout = QVBoxLayout()
+        subLayout.addWidget(self.showGrid)
         subLayout.addWidget(self.spinHeight)
         subLayout.addWidget(self.spinWidth)
         subLayout.addWidget(self.spinDepth)
@@ -88,6 +99,27 @@ class Window(QWidget):
         self.glWidget.setMatrixSize(self.spinWidth.value(),
                                     self.spinHeight.value(),
                                     self.spinDepth.value())
+
+        self.blocksX.setColumnCount(self.spinWidth.value())
+        self.blocksY.setRowCount(self.spinHeight.value())
+        self.blocksZ.setColumnCount(self.spinDepth.value())
+
+    @pyqtSlot()
+    def updateBlocks(self):
+        # self.activeBlock = x
+        x = self.blocksX.currentColumn()
+        y = self.blocksY.currentRow()
+        z = self.blocksZ.currentColumn()
+
+        if not x == -1 and not y == -1 and not z == -1:
+            self.glWidget.matrix.blocks[x, y, z].isActive = \
+                not self.glWidget.matrix.blocks[x, y, z].isActive
+            self.glWidget.updateGL()
+
+    @pyqtSlot()
+    def updateGrid(self):
+        self.glWidget.matrix.showGrid(self.showGrid.isChecked())
+        self.glWidget.updateGL()
 
 
 class GLWidget(QOpenGLWidget):
@@ -204,6 +236,7 @@ class GLWidget(QOpenGLWidget):
     def mousePressEvent(self, event):
         self.lastPos = event.pos()
 
+
     def mouseMoveEvent(self, event):
         dx = event.x() - self.lastPos.x()
         dy = event.y() - self.lastPos.y()
@@ -277,6 +310,9 @@ class GLWidget(QOpenGLWidget):
 
     def setMatrixSize(self, x, y, z):
         self.matrix = Matrix(x, y, z)
+        self.updateGL()
+
+    def updateGL(self):
         self.object = self.makeObject()
         self.paintGL()
         self.update()

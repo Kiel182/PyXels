@@ -11,6 +11,7 @@ class Block:
         self.x0 = 0.0
         self.y0 = 0.0
         self.z0 = 0.0
+        self.show_grid = True
 
         self.vertices = (
             (self.x0 + 1, self.y0,     self.z0),
@@ -53,6 +54,7 @@ class Block:
         self.x0 = x
         self.y0 = y
         self.z0 = z
+        self.show_grid = True
 
         self.vertices = (
             (self.x0 + 1, self.y0,     self.z0),
@@ -94,9 +96,11 @@ class Block:
     def paint(self):
         gl.glBegin(gl.GL_LINES)
         self.setColor(self.trolltechPurple)
-        for edge in self.edges:
-            for vertex in edge:
-                gl.glVertex3fv(self.vertices[vertex])
+
+        if self.show_grid:
+            for edge in self.edges:
+                for vertex in edge:
+                    gl.glVertex3fv(self.vertices[vertex])
 
         gl.glEnd()
 
