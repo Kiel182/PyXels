@@ -147,6 +147,7 @@ class GLWidget(QOpenGLWidget):
 
         self.trolltechGreen = QColor.fromCmykF(0.40, 0.0, 1.0, 0.0)
         self.trolltechPurple = QColor.fromCmykF(0.39, 0.39, 0.0, 0.0)
+        self.Black = QColor.fromCmykF(0.0, 0.0, 0.0, 0.0, 0.0)
 
     def getOpenglInfo(self):
         info = """
@@ -160,8 +161,6 @@ class GLWidget(QOpenGLWidget):
             gl.glGetString(gl.GL_VERSION),
             gl.glGetString(gl.GL_SHADING_LANGUAGE_VERSION)
         )
-
-        print("getOpenGLInfo")
 
         return info
 
@@ -178,8 +177,6 @@ class GLWidget(QOpenGLWidget):
             self.xRotationChanged.emit(angle)
             self.update()
 
-        print("setXRotation")
-
     def setYRotation(self, angle):
         angle = self.normalizeAngle(angle)
         if angle != self.yRot:
@@ -187,16 +184,12 @@ class GLWidget(QOpenGLWidget):
             self.yRotationChanged.emit(angle)
             self.update()
 
-        print("setYRotation")
-
     def setZRotation(self, angle):
         angle = self.normalizeAngle(angle)
         if angle != self.zRot:
             self.zRot = angle
             self.zRotationChanged.emit(angle)
             self.update()
-
-        print("setZRotation")
 
     def initializeGL(self):
         print(self.getOpenglInfo())
@@ -206,8 +199,6 @@ class GLWidget(QOpenGLWidget):
         gl.glShadeModel(gl.GL_FLAT)
         gl.glEnable(gl.GL_DEPTH_TEST)
         gl.glEnable(gl.GL_CULL_FACE)
-
-        print("initializeGL")
 
     def paintGL(self):
         gl.glClear(
@@ -219,8 +210,6 @@ class GLWidget(QOpenGLWidget):
         gl.glRotated(self.zRot / 16.0, 0.0, 0.0, 1.0)
         gl.glCallList(self.object)
 
-        print("paintGL")
-
     def resizeGL(self, width, height):
         side = min(width, height)
         if side < 0:
@@ -231,10 +220,11 @@ class GLWidget(QOpenGLWidget):
         glu.gluPerspective(45, width/height, 0.1, 250.0)
         gl.glMatrixMode(gl.GL_MODELVIEW)
 
-        print("resizeGL")
-
     def mousePressEvent(self, event):
         self.lastPos = event.pos()
+
+        if event.buttons() & Qt.MiddleButton:
+            self.resetView()
 
 
     def mouseMoveEvent(self, event):
@@ -255,8 +245,6 @@ class GLWidget(QOpenGLWidget):
                 self.translateX = dx / 100
                 self.translateY = - dy / 100
 
-                print(dx)
-
                 self.update()
 
     def wheelEvent(self, event):
@@ -272,12 +260,10 @@ class GLWidget(QOpenGLWidget):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Shift:
             self.ctlPressed = True
-            print(self.ctlPressed)
 
     def keyReleaseEvent(self, event):
         if event.key() == Qt.Key_Shift:
             self.ctlPressed = False
-            print(self.ctlPressed)
 
     def makeObject(self):
         genList = gl.glGenLists(1)
@@ -287,8 +273,6 @@ class GLWidget(QOpenGLWidget):
 
         gl.glEndList()
 
-        print("makeObject")
-
         return genList
 
     def normalizeAngle(self, angle):
@@ -297,19 +281,26 @@ class GLWidget(QOpenGLWidget):
         while angle > 360 * 16:
             angle -= 360 * 16
 
-        print("normalizeAngle")
         return angle
 
     def setClearColor(self, c):
         gl.glClearColor(c.redF(), c.greenF(), c.blueF(), c.alphaF())
-        print("setClearColor")
 
     def setColor(self, c):
         gl.glColor4f(c.redF(), c.greenF(), c.blueF(), c.alphaF())
-        print("setColor")
 
     def setMatrixSize(self, x, y, z):
         self.matrix = Matrix(x, y, z)
+        self.updateGL()
+
+    def resetView(self):
+        self.xRot = 0
+        self.yRot = 0
+        self.zRot = 0
+        self.translateX = 0.0
+        self.translateY = 0.0
+        self.zoom = -15.0
+
         self.updateGL()
 
     def updateGL(self):

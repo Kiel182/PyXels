@@ -6,6 +6,7 @@ from PyQt5.QtGui import QColor
 class Block:
     trolltechGreen = QColor.fromCmykF(0.40, 0.0, 1.0, 0.0)
     trolltechPurple = QColor.fromCmykF(0.39, 0.39, 0.0, 0.0)
+    Black = QColor.fromCmykF(1.0, 1.0, 1.0, 1.0, 1.0)
 
     def __init__(self):
         self.x0 = 0.0
@@ -106,7 +107,7 @@ class Block:
 
         if self.isActive:
             gl.glBegin(gl.GL_QUADS)
-            self.setColor(self.trolltechGreen)
+            self.setColor(self.Black)
             for surface in self.surfaces:
                 for vertex in surface:
                     gl.glVertex3fv(self.vertices[vertex])
