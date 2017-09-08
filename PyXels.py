@@ -224,7 +224,10 @@ class GLWidget(QOpenGLWidget):
         self.lastPos = event.pos()
 
         if event.buttons() & Qt.MiddleButton:
-            self.resetView()
+            # self.resetView()
+            self.matrix.paintForPick()
+            self.updateGL()
+
 
 
     def mouseMoveEvent(self, event):
@@ -269,7 +272,7 @@ class GLWidget(QOpenGLWidget):
         genList = gl.glGenLists(1)
         gl.glNewList(genList, gl.GL_COMPILE)
 
-        self.matrix.paint()
+        self.matrix.paintForPick()
 
         gl.glEndList()
 

@@ -14,6 +14,12 @@ class Block:
         self.z0 = 0.0
         self.show_grid = True
 
+        self.ID = 1
+
+        self.r_pick = (1 & 0x000000FF) >> 0
+        self.g_pick = (1 & 0x0000FF00) >> 0
+        self.b_pick = (1 & 0x00FF0000) >> 0
+
         self.vertices = (
             (self.x0 + 1, self.y0,     self.z0),
             (self.x0 + 1, self.y0 + 1, self.z0),
@@ -51,11 +57,19 @@ class Block:
 
         self.isActive = False
 
-    def __init__(self, x, y, z):
+    def __init__(self, x, y, z, ID):
         self.x0 = x
         self.y0 = y
         self.z0 = z
         self.show_grid = True
+
+        self.ID = ID
+
+        self.r_pick = (self.ID & 0x000000FF) >> 0
+        self.g_pick = (self.ID & 0x0000FF00) >> 8
+        self.b_pick = (self.ID & 0x00FF0000) >> 16
+
+        self.pick_color = QColor.fromRgbF(self.r_pick/255.0, self.g_pick/255.0, self.b_pick/255.0, 1.0)
 
         self.vertices = (
             (self.x0 + 1, self.y0,     self.z0),
@@ -107,12 +121,21 @@ class Block:
 
         if self.isActive:
             gl.glBegin(gl.GL_QUADS)
-            self.setColor(self.Black)
+            self.setColor(self.pick_color)
             for surface in self.surfaces:
                 for vertex in surface:
                     gl.glVertex3fv(self.vertices[vertex])
 
             gl.glEnd()
+
+    def paintForPick(self):
+        gl.glBegin(gl.GL_QUADS)
+        self.setColor(self.pick_color)
+        for surface in self.surfaces:
+            for vertex in surface:
+                gl.glVertex3fv(self.vertices[vertex])
+
+        gl.glEnd()
 
     def setColor(self, c):
         gl.glColor4f(c.redF(), c.greenF(), c.blueF(), c.alphaF())

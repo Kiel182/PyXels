@@ -18,10 +18,13 @@ class Matrix:
 
         self.blocks = np.ndarray((width, height, depth), Block)
 
+        id = 0
+
         for x in range(0, width):
             for y in range(0, height):
                 for z in range(0, depth):
-                    self.blocks[x, y, z] = Block(x + self.x0, y + self.y0, z + self.z0)
+                    self.blocks[x, y, z] = Block(x + self.x0, y + self.y0, z + self.z0, id)
+                    id += 1
 
     def paint(self):
         for x in range(0, self.width):
@@ -34,3 +37,9 @@ class Matrix:
             for y in range(0, self.height):
                 for z in range(0, self.depth):
                     self.blocks[x, y, z].show_grid = show
+
+    def paintForPick(self):
+        for x in range(0, self.width):
+            for y in range(0, self.height):
+                for z in range(0, self.depth):
+                    self.blocks[x, y, z].paintForPick()
