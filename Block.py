@@ -121,7 +121,7 @@ class Block:
 
         if self.isActive:
             gl.glBegin(gl.GL_QUADS)
-            self.setColor(self.pick_color)
+            self.setColor(self.trolltechGreen)
             for surface in self.surfaces:
                 for vertex in surface:
                     gl.glVertex3fv(self.vertices[vertex])

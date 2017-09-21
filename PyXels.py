@@ -224,8 +224,8 @@ class GLWidget(QOpenGLWidget):
         self.lastPos = event.pos()
 
         if event.buttons() & Qt.MiddleButton:
-            # self.resetView()
-            self.matrix.paintForPick()
+            self.resetView()
+            # self.matrix.paintForPick()
             self.updateGL()
 
 
@@ -272,7 +272,8 @@ class GLWidget(QOpenGLWidget):
         genList = gl.glGenLists(1)
         gl.glNewList(genList, gl.GL_COMPILE)
 
-        self.matrix.paintForPick()
+        # self.matrix.paintForPick()
+        self.matrix.paint()
 
         gl.glEndList()
 
@@ -310,6 +311,15 @@ class GLWidget(QOpenGLWidget):
         self.object = self.makeObject()
         self.paintGL()
         self.update()
+
+    def testRayOBBIntersection(self, ray_origin, ray_direction, aabb_min, aabb_max,
+                               ModelMatrix, intersection_distance):
+        tMin = 0.0
+        tMax = 100000.0
+
+        OBBposition_worldspace = np.atleast_3d()
+
+        return False
 
 
 if __name__ == '__main__':
