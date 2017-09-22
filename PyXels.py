@@ -5,7 +5,7 @@ from PyQt5.QtCore import pyqtSignal, QPoint, QSize, Qt, pyqtSlot
 from PyQt5.Qt import QVector3D, QVector4D
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QVBoxLayout, QOpenGLWidget, QSlider,
-                             QWidget, QSizePolicy, QSpinBox, QTableWidget, QCheckBox)
+                             QWidget, QSizePolicy, QSpinBox, QColorDialog, QCheckBox, QPushButton)
 
 import OpenGL.GL as gl
 import OpenGL.GLU as glu
@@ -24,10 +24,8 @@ class Window(QWidget):
         self.spinHeight = QSpinBox()
         self.spinWidth = QSpinBox()
         self.spinDepth = QSpinBox()
-        self.blocksX = QTableWidget()
-        self.blocksY = QTableWidget()
-        self.blocksZ = QTableWidget()
         self.showGrid = QCheckBox()
+        self.colorButton = QPushButton()
 
         self.showGrid.setChecked(True)
         self.showGrid.setText("Show grid")
@@ -45,37 +43,12 @@ class Window(QWidget):
         self.spinWidth.setValue(5)
         self.spinHeight.setValue(5)
 
-        self.blocksX.setFixedSize(150, 50)
-        self.blocksX.horizontalHeader().hide()
-        self.blocksX.verticalHeader().hide()
-        self.blocksX.horizontalHeader().setDefaultSectionSize(25)
-        self.blocksX.verticalHeader().setDefaultSectionSize(25)
-        self.blocksX.setRowCount(1)
-        self.blocksX.setColumnCount(5)
-
-        self.blocksY.setFixedSize(50, 150)
-        self.blocksY.horizontalHeader().hide()
-        self.blocksY.verticalHeader().hide()
-        self.blocksY.horizontalHeader().setDefaultSectionSize(25)
-        self.blocksY.verticalHeader().setDefaultSectionSize(25)
-        self.blocksY.setRowCount(5)
-        self.blocksY.setColumnCount(1)
-
-        self.blocksZ.setFixedSize(150, 50)
-        self.blocksZ.horizontalHeader().hide()
-        self.blocksZ.verticalHeader().hide()
-        self.blocksZ.horizontalHeader().setDefaultSectionSize(25)
-        self.blocksZ.verticalHeader().setDefaultSectionSize(25)
-        self.blocksZ.setRowCount(1)
-        self.blocksZ.setColumnCount(5)
-
         self.spinHeight.valueChanged.connect(self.updateMatrix)
         self.spinWidth.valueChanged.connect(self.updateMatrix)
         self.spinDepth.valueChanged.connect(self.updateMatrix)
 
-        self.blocksX.cellClicked.connect(self.updateBlocks)
-        self.blocksY.cellClicked.connect(self.updateBlocks)
-        self.blocksZ.cellClicked.connect(self.updateBlocks)
+        self.colorButton.setText("Pick Color")
+        self.colorButton.clicked.connect(self.color_picker)
 
         mainLayout = QHBoxLayout()
         mainLayout.addWidget(self.glWidget)
@@ -84,9 +57,7 @@ class Window(QWidget):
         subLayout.addWidget(self.spinHeight)
         subLayout.addWidget(self.spinWidth)
         subLayout.addWidget(self.spinDepth)
-        subLayout.addWidget(self.blocksX)
-        subLayout.addWidget(self.blocksY)
-        subLayout.addWidget(self.blocksZ)
+        subLayout.addWidget(self.colorButton)
         mainLayout.addLayout(subLayout)
         self.setLayout(mainLayout)
 
@@ -95,26 +66,18 @@ class Window(QWidget):
         self.setWindowTitle("PyXels")
 
     @pyqtSlot()
+    def color_picker(self):
+        color = QColorDialog.getColor()
+        self.glWidget.setSelectedColor(color)
+
+    @pyqtSlot()
     def updateMatrix(self):
         self.glWidget.setMatrixSize(self.spinWidth.value(),
                                     self.spinHeight.value(),
                                     self.spinDepth.value())
-
-        self.blocksX.setColumnCount(self.spinWidth.value())
-        self.blocksY.setRowCount(self.spinHeight.value())
-        self.blocksZ.setColumnCount(self.spinDepth.value())
-
-    @pyqtSlot()
-    def updateBlocks(self):
-        # self.activeBlock = x
-        x = self.blocksX.currentColumn()
-        y = self.blocksY.currentRow()
-        z = self.blocksZ.currentColumn()
-
-        if not x == -1 and not y == -1 and not z == -1:
-            self.glWidget.matrix.blocks[x, y, z].isActive = \
-                not self.glWidget.matrix.blocks[x, y, z].isActive
-            self.glWidget.updateGL()
+        self.glWidget.selectedX = 0
+        self.glWidget.selectedY = 0
+        self.glWidget.selectedZ = 0
 
     @pyqtSlot()
     def updateGrid(self):
@@ -144,6 +107,10 @@ class GLWidget(QOpenGLWidget):
         self.matrix = Matrix(5, 5, 5)
 
         self.lastPos = QPoint()
+
+        self.selectedX = 0
+        self.selectedY = 0
+        self.selectedZ = 4
 
         self.trolltechGreen = QColor.fromCmykF(0.40, 0.0, 1.0, 0.0)
         self.trolltechPurple = QColor.fromCmykF(0.39, 0.39, 0.0, 0.0)
@@ -263,6 +230,39 @@ class GLWidget(QOpenGLWidget):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Shift:
             self.ctlPressed = True
+        elif event.key() == Qt.Key_Left and self.selectedX > 0:
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.selectedX -= 1
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.updateGL()
+        elif event.key() == Qt.Key_Right and self.selectedX < self.matrix.width - 1:
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.selectedX += 1
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.updateGL()
+        elif event.key() == Qt.Key_Minus and self.selectedY > 0:
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.selectedY -= 1
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.updateGL()
+        elif event.key() == Qt.Key_Plus and self.selectedY < self.matrix.height - 1:
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.selectedY += 1
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.updateGL()
+        elif event.key() == Qt.Key_Up and self.selectedZ > 0:
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.selectedZ -= 1
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.updateGL()
+        elif event.key() == Qt.Key_Down and self.selectedZ < self.matrix.depth - 1:
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.selectedZ += 1
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
+            self.updateGL()
+        elif event.key() == Qt.Key_F5:
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].activate()
+            self.updateGL()
 
     def keyReleaseEvent(self, event):
         if event.key() == Qt.Key_Shift:
@@ -320,6 +320,10 @@ class GLWidget(QOpenGLWidget):
         OBBposition_worldspace = np.atleast_3d()
 
         return False
+
+    def setSelectedColor(self, color):
+        self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].color = color
+        print("color set")
 
 
 if __name__ == '__main__':

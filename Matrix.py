@@ -26,6 +26,8 @@ class Matrix:
                     self.blocks[x, y, z] = Block(x + self.x0, y + self.y0, z + self.z0, id)
                     id += 1
 
+        self.blocks[0, 0, self.depth - 1].select()
+
     def paint(self):
         for x in range(0, self.width):
             for y in range(0, self.height):

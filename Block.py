@@ -5,7 +5,8 @@ from PyQt5.QtGui import QColor
 
 class Block:
     trolltechGreen = QColor.fromCmykF(0.40, 0.0, 1.0, 0.0)
-    trolltechPurple = QColor.fromCmykF(0.39, 0.39, 0.0, 0.0)
+    trolltechGreenTrsp = QColor.fromCmykF(0.40, 0.0, 1.0, 0.5)
+    trolltechPurple = QColor.fromCmykF(0.39, 0.39, 0.0, 1.0)
     Black = QColor.fromCmykF(1.0, 1.0, 1.0, 1.0, 1.0)
 
     def __init__(self):
@@ -56,6 +57,8 @@ class Block:
         )
 
         self.isActive = False
+        self.isSelected = False
+        self.color = self.trolltechGreen
 
     def __init__(self, x, y, z, ID):
         self.x0 = x
@@ -107,6 +110,8 @@ class Block:
         )
 
         self.isActive = False
+        self.isSelected = False
+        self.color = self.trolltechGreen
 
     def paint(self):
         gl.glBegin(gl.GL_LINES)
@@ -121,12 +126,27 @@ class Block:
 
         if self.isActive:
             gl.glBegin(gl.GL_QUADS)
-            self.setColor(self.trolltechGreen)
+            self.setColor(self.color)
             for surface in self.surfaces:
                 for vertex in surface:
                     gl.glVertex3fv(self.vertices[vertex])
 
             gl.glEnd()
+
+        if self.isSelected:
+            gl.glBegin(gl.GL_QUADS)
+            self.setColor(self.trolltechGreenTrsp)
+            for surface in self.surfaces:
+                for vertex in surface:
+                    gl.glVertex3fv(self.vertices[vertex])
+
+            gl.glEnd()
+
+    def select(self):
+        self.isSelected = not self.isSelected
+
+    def activate(self):
+        self.isActive = not self.isActive
 
     def paintForPick(self):
         gl.glBegin(gl.GL_QUADS)
