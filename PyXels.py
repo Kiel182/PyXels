@@ -55,7 +55,7 @@ class Window(QWidget):
         subLayout = QVBoxLayout()
         subLayout.addWidget(self.showGrid)
         subLayout.addWidget(self.spinHeight)
-        subLayout.addWidget(self.spinWidth)
+        subLayout.addWidget(self.spinWidth) 
         subLayout.addWidget(self.spinDepth)
         subLayout.addWidget(self.colorButton)
         mainLayout.addLayout(subLayout)
