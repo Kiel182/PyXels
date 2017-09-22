@@ -51,7 +51,7 @@ class Window(QWidget):
         self.colorButton.clicked.connect(self.color_picker)
 
         mainLayout = QHBoxLayout()
-        mainLayout.addWidget(self.glWidget) 
+        mainLayout.addWidget(self.glWidget)
         subLayout = QVBoxLayout()
         subLayout.addWidget(self.showGrid)
         subLayout.addWidget(self.spinHeight)
