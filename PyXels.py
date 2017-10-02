@@ -1,17 +1,16 @@
+#!/usr/bin/env python3
+
 import sys
-import math
 
 from PyQt5.QtCore import pyqtSignal, QPoint, QSize, Qt, pyqtSlot
-from PyQt5.Qt import QVector3D, QVector4D
 from PyQt5.QtGui import *
-from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QVBoxLayout, QOpenGLWidget, QSlider,
-                             QWidget, QSizePolicy, QSpinBox, QColorDialog, QCheckBox, QPushButton)
+from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QVBoxLayout, QOpenGLWidget,
+                             QWidget, QSpinBox, QColorDialog, QCheckBox, QPushButton)
 
 import OpenGL.GL as gl
 import OpenGL.GLU as glu
 
 from Matrix import Matrix
-import numpy as np
 
 
 class Window(QWidget):
@@ -55,7 +54,7 @@ class Window(QWidget):
         subLayout = QVBoxLayout()
         subLayout.addWidget(self.showGrid)
         subLayout.addWidget(self.spinHeight)
-        subLayout.addWidget(self.spinWidth) 
+        subLayout.addWidget(self.spinWidth)
         subLayout.addWidget(self.spinDepth)
         subLayout.addWidget(self.colorButton)
         mainLayout.addLayout(subLayout)
@@ -77,7 +76,7 @@ class Window(QWidget):
                                     self.spinDepth.value())
         self.glWidget.selectedX = 0
         self.glWidget.selectedY = 0
-        self.glWidget.selectedZ = 0
+        self.glWidget.selectedZ = self.spinDepth.value() - 1
 
     @pyqtSlot()
     def updateGrid(self):
@@ -115,6 +114,8 @@ class GLWidget(QOpenGLWidget):
         self.trolltechGreen = QColor.fromCmykF(0.40, 0.0, 1.0, 0.0)
         self.trolltechPurple = QColor.fromCmykF(0.39, 0.39, 0.0, 0.0)
         self.Black = QColor.fromCmykF(0.0, 0.0, 0.0, 0.0, 0.0)
+
+        self.selectedColor = self.trolltechGreen
 
     def getOpenglInfo(self):
         info = """
@@ -166,6 +167,7 @@ class GLWidget(QOpenGLWidget):
         gl.glShadeModel(gl.GL_FLAT)
         gl.glEnable(gl.GL_DEPTH_TEST)
         gl.glEnable(gl.GL_CULL_FACE)
+        gl.glCullFace(gl.GL_FRONT)
 
     def paintGL(self):
         gl.glClear(
@@ -184,7 +186,7 @@ class GLWidget(QOpenGLWidget):
 
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glLoadIdentity()
-        glu.gluPerspective(45, width/height, 0.1, 250.0)
+        glu.gluPerspective(45, width/height, 1, 100.0)
         gl.glMatrixMode(gl.GL_MODELVIEW)
 
     def mousePressEvent(self, event):
@@ -192,10 +194,7 @@ class GLWidget(QOpenGLWidget):
 
         if event.buttons() & Qt.MiddleButton:
             self.resetView()
-            # self.matrix.paintForPick()
             self.updateGL()
-
-
 
     def mouseMoveEvent(self, event):
         dx = event.x() - self.lastPos.x()
@@ -212,10 +211,11 @@ class GLWidget(QOpenGLWidget):
             self.lastPos = event.pos()
         else:
             if event.buttons() & Qt.LeftButton:
-                self.translateX = dx / 100
-                self.translateY = - dy / 100
+                self.translateX += dx / 100
+                self.translateY += - dy / 100
 
                 self.update()
+                self.lastPos = event.pos()
 
     def wheelEvent(self, event):
 
@@ -261,6 +261,7 @@ class GLWidget(QOpenGLWidget):
             self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].select()
             self.updateGL()
         elif event.key() == Qt.Key_F5:
+            self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].color = self.selectedColor
             self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].activate()
             self.updateGL()
 
@@ -272,7 +273,6 @@ class GLWidget(QOpenGLWidget):
         genList = gl.glGenLists(1)
         gl.glNewList(genList, gl.GL_COMPILE)
 
-        # self.matrix.paintForPick()
         self.matrix.paint()
 
         gl.glEndList()
@@ -312,18 +312,8 @@ class GLWidget(QOpenGLWidget):
         self.paintGL()
         self.update()
 
-    def testRayOBBIntersection(self, ray_origin, ray_direction, aabb_min, aabb_max,
-                               ModelMatrix, intersection_distance):
-        tMin = 0.0
-        tMax = 100000.0
-
-        OBBposition_worldspace = np.atleast_3d()
-
-        return False
-
     def setSelectedColor(self, color):
-        self.matrix.blocks[self.selectedX, self.selectedY, self.selectedZ].color = color
-        print("color set")
+        self.selectedColor = color
 
 
 if __name__ == '__main__':

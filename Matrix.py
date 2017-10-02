@@ -1,6 +1,6 @@
 from Block import Block
 import numpy as np
-from time import sleep
+
 
 class Matrix:
     def __init__(self, width, height, depth):

@@ -1,12 +1,11 @@
-
 import OpenGL.GL as gl
-import OpenGL.GLU as glu
 from PyQt5.QtGui import QColor
 
+
 class Block:
-    trolltechGreen = QColor.fromCmykF(0.40, 0.0, 1.0, 0.0)
-    trolltechGreenTrsp = QColor.fromCmykF(0.40, 0.0, 1.0, 0.5)
-    trolltechPurple = QColor.fromCmykF(0.39, 0.39, 0.0, 1.0)
+    trolltechGreen = QColor.fromCmykF(0.40, 0.0, 1.0, 1.0, 1.0)
+    trolltechGreenTrsp = QColor.fromCmykF(0.40, 0.0, 1.0, 0.5, 0.0)
+    trolltechPurple = QColor.fromCmykF(0.39, 0.39, 0.0, 1.0, 0.0)
     Black = QColor.fromCmykF(1.0, 1.0, 1.0, 1.0, 1.0)
 
     def __init__(self):
@@ -117,7 +116,7 @@ class Block:
         gl.glBegin(gl.GL_LINES)
         self.setColor(self.trolltechPurple)
 
-        if self.show_grid:
+        if self.show_grid or self.isActive:
             for edge in self.edges:
                 for vertex in edge:
                     gl.glVertex3fv(self.vertices[vertex])
@@ -139,7 +138,6 @@ class Block:
             for surface in self.surfaces:
                 for vertex in surface:
                     gl.glVertex3fv(self.vertices[vertex])
-
             gl.glEnd()
 
     def select(self):
@@ -159,3 +157,4 @@ class Block:
 
     def setColor(self, c):
         gl.glColor4f(c.redF(), c.greenF(), c.blueF(), c.alphaF())
+
